@@ -1,0 +1,113 @@
+.\" https://linux.die.net/man/7/groff_mdoc
+.Dd $Mdocdate: August 3 2018 $
+.Dt E 1
+.Os
+.Sh NAME
+.Nm e
+.Nd minimalistic full screen text editor
+.Sh SYNOPSIS
+.Nm
+.Op Ar
+.Sh DESCRIPTION
+.Nm
+is a minimalistic text editor.
+.Bl -bullet -offset indent -compact
+.It
+inspired by Norton Editor for DOS
+.It
+features insert/replace mode, block operations with highlighting, find and 
+replace, goto line
+.It
+written on C with ncurses, so it should compile anywhere
+.It
+tested with
+ - FreeBSD 2.2.8-9.3
+ - RedHat 6.2
+ - SunOS 2.6-10
+.It
+file loaded entirely in memory, you are limited only to what realloc(3) return
+.El
+.Sh KEYBINDINGS
+ASCII characters will self-insert. Enter, Up, Down, Left, Right, Home, End, 
+PgUp, PgDn, Del and Backspace behave as you'd expect.
+
+.Bl -tag -width xxx -offset indent -compact
+.It ins
+toggle insert (overwrite) mode
+.It ^X
+exit
+.It ^S
+save file as
+.It ^T
+goto top of text
+.It ^O
+goto bottom of text
+.It ^Y
+delete current line
+.It ^Q
+quote next character (i.e. for putting in non-printable characters)
+.It ^A
+go to line by number (or beginning of selection if number not specified)
+.It ^F
+find string (not regexp, usual string, exact case)
+.It ^R
+replace one string by another
+.It ^N
+repeat last operation of find or replace
+.It ^B
+mark beginning of block (block will be highlighted if beginning mark before end
+mark)
+.It ^E
+mark end of block
+.It ^C
+copy marked block to current position
+.It ^V
+move marked block to current position
+.It ^D
+delete marked block
+.It ^P
+put (write) block in file
+.It ^G
+get (load) block from file
+.It ^J
+up a screen; same as PgUp
+.It ^K
+down a screen; same as PgDn
+.El
+.Sh HINTS
+.Bl -bullet -compact
+.It
+you can edit binary files because
+.Nm
+doesn't format anything; it will leave this to your terminal
+.It
+to reset block selection put ending mark before or at beginning mark (^B^E)
+.It
+you can convert Dos files (crlf) to Unix (lf) easily: while pressing
+Ctrl print trqmmmnnnnnnnnn... :)
+.It
+and back to Dos: trqjmqmqjmnnn...
+.It
+Further to that, be careful with Ctrl while printing something like 'tboed'
+.It
+there is no autosave or anything like that, so backup your data
+.El
+.Sh BUGS
+many operations on every getch: erase() and COLS*LINES addch(),
+but I don't think it's so bad (scrolling is optimised, so on telnet session
+to 386 I feel the same speed as vi).
+.Sh COPYING
+.Bl -bullet -compact
+.It
+As is, no warranties at all
+.It
+You can do with these sources whatever you want; except if you use the
+latest version of this program and found a bug, then you must inform me about 
+it.
+.El
+.Sh AUTHORS
+.Bl -bullet -compact
+.It
+Mtv Europe <mtve1927@gmail.com> - initial release
+.It
+japanoise/chameleon - wrote this manpage 
