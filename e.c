@@ -26,6 +26,10 @@ int	bos_pos = 0, eos_pos = 0, cur_pos = 0, eof_pos = 0, bow_line = 0;
 int	bow_line_prev = 0, win_shift = 0, cur_line = 0, cur_y = 0, cur_x = 0;
 int	is_changed = 0, ins_mode = 1, find_mode = 0;
 
+char	*confirm_text = 0;
+char	*prompt_text = 0;
+char	*prompt_buf = 0;
+
 #define	ALIGN(x,mod)	(((x) / (mod) + 1) * (mod))
 #define nexttab(x)	ALIGN (x, TABSIZE)
 #define align_chunk(x)	ALIGN (x, CHUNKSIZE)
@@ -45,13 +49,15 @@ int	confirm (char *s)
 {
 	int	ch;
 
+	confirm_text = s;
 	move (LINES - 1, 0);
 	attron (A_BOLD);
 	addstr (s);
 	attroff (A_BOLD);
 	clrtoeol ();
 	refresh ();
-	ch = getch ();
+	do ch = getch (); while (ch == KEY_RESIZE);
+	confirm_text = 0;
 	return ch == 'y' || ch == 'Y';
 }
 
@@ -68,7 +74,11 @@ int	enter_string (char *s, char *buf)
 			adduch (buf[b_len]);
 		clrtoeol ();
 		refresh ();
-		ch = getch ();
+		prompt_text = s;
+		prompt_buf = buf;
+		do ch = getch (); while (ch == KEY_RESIZE);
+		prompt_text = 0;
+		prompt_buf = 0;
 		switch (ch) {
 		case CTRL ('Y'):
 			*buf = 0;
@@ -491,9 +501,42 @@ void	done (int sig)
 	exit (0);
 }
 
+void	resize (int sig)
+{
+	(void)sig;
+	endwin ();
+	refresh ();
+	keypad (stdscr, TRUE);
+	scrollok (stdscr, TRUE);
+	idlok (stdscr, TRUE);
+	nonl ();
+	raw ();
+	noecho ();
+	show ();
+	if (confirm_text) {
+		move (LINES - 1, 0);
+		attron (A_BOLD);
+		addstr (confirm_text);
+		attroff (A_BOLD);
+		clrtoeol ();
+	} else if (prompt_text) {
+		move (LINES - 1, 0);
+		attron (A_BOLD);
+		addstr (prompt_text);
+		attroff (A_BOLD);
+		for (int b_len = 0; prompt_buf[b_len]; b_len++)
+			adduch (prompt_buf[b_len]);
+		clrtoeol ();
+	} else {
+		move (cur_y, cur_x);
+	}
+	refresh ();
+}
+
 void	init (void)
 {
 	signal (SIGINT, done);
+	signal (SIGWINCH, resize);
 	initscr ();
 	keypad (stdscr, TRUE);
 	scrollok (stdscr, TRUE);
@@ -541,7 +584,7 @@ int	main (int argv, char **argc)
 		show ();
 		move (cur_y, cur_x);
 		refresh ();
-		ch = getch ();
+		do ch = getch (); while (ch == KEY_RESIZE);
 		switch (ch) {
 		case KEY_UP:
 			k_up ();
